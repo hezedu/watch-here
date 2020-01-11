@@ -1,14 +1,15 @@
 // watch file change and  restart server.
 
-const { spawn } = require('child_process');
-const path = require('path');
-
+const { spawn, execSync } = require('child_process');
+// https://github.com/nodejs/node/issues/14556
+// WTF: parent process Terminated, child still alive. but not trigger 'exit';
+// kill pid
 const watch = require('watch');
 
 // _console style like nodemon.
 // "chalk" is can't work in `tail -f` on my computer. So..
 let _COLOR_MAP = {red: 31, 
-  // green: 32, 避免跟 nodemon 冲突.
+  green: 32, // 避免跟 nodemon 冲突.
   yellow: 33, 
   cyan: 96};
 function _colorLog(style, str) {
@@ -16,9 +17,49 @@ function _colorLog(style, str) {
 }
 
 function watchHere({dir, name, run}){
-  if(process.env.WATCHED_HERE){
+  if(process.env.WATCHED_HERE_NAME === name){
     run();
     return;
+  } else {
+
+    function _getWatchedProcess(){
+      let psCmdPre = "ps -aux | grep ";
+      let result = execSync(psCmdPre + "'" + process.argv.join(' ') + "'");
+      result = result.toString();
+      result = result.trim();
+      console.log('\n');
+      console.log(result);
+      console.log('\n');
+      result = result.split(/\n|\r\n/);
+      let line;
+      let pidArr = [];
+      for(let i = 0, len = result.length; i < len; i++){
+        line = result[i].trim();
+        if(line && line.indexOf(psCmdPre) === -1){
+          line = line.split(/\s+/);
+          const pid = line[1];
+          if(process.pid.toString() !== pid){
+            pidArr.push(pid)
+          } else {
+            return pidArr;
+          }
+        } else {
+          return pidArr;
+        }
+      }
+      return pidArr;
+    }
+
+    let watchedPids = _getWatchedProcess();
+    watchedPids.forEach(pid => {
+      _colorLog('green', '[watch-here]: Rewatch. kill process ' + pid);
+      execSync('kill ' + pid);
+    })
+
+    // console.log(result)
+    // result = result.split(/\s+/);
+    // console.log('result')
+    // console.log(result)
   }
   let child, 
   fileIsChange = false,
@@ -32,7 +73,7 @@ function watchHere({dir, name, run}){
     }, function(f){
       if(typeof f !== 'object'){
         // console.info('[Watch-Here]: file changed:', `'./${path.relative(dir, f)}'`);
-        console.info('[Watch-Here]: file changed.');
+        console.info('[Watch-Here]: file changed:', `'${f}'`);
         if(f === process.mainModule.filename){
           return; // 此文件
         }
@@ -41,8 +82,8 @@ function watchHere({dir, name, run}){
       }
     });
   }
-
   function handleChildCrash(){
+    console.log('handleChildCrash')
     if(fileIsChange){
       isWaitFileChange = false;
       _colorLog('cyan', `[${name}]: Restarting due to changes...`);
@@ -53,7 +94,7 @@ function watchHere({dir, name, run}){
         _colorLog('red', `[${name}]: Process is crash! wait for File Change to restart...`);
         isWaitFileChange = true;
       }
-      setTimeout(handleChildCrash, 1000);
+      // setTimeout(handleChildCrash, 1000);
     }
   }
 
@@ -62,12 +103,13 @@ function watchHere({dir, name, run}){
       cwd: __dirname,
       env: {
         ...process.env,
-        WATCHED_HERE: 1
+        WATCHED_HERE_NAME: name
       },
       stdio: 'inherit'
     });
 
     child.on('close', (code) => {
+      //  || s !== 'SIGTERM'
       if(code !== 0){
         handleChildCrash();
       }else{
@@ -78,6 +120,7 @@ function watchHere({dir, name, run}){
   }
 
   _watch(dir);
+  _colorLog('cyan', `[watch-here]: Watching '${dir}'. pid: ` + process.pid);
   loop();
 }
 
