@@ -15,8 +15,9 @@ function _colorLog(style, str) {
   console.info('\u001b[' + _COLOR_MAP[style] + 'm' + str + '\u001b[39m');
 }
 
-function watchHere({dir, name}){
+function watchHere({dir, name, run}){
   if(process.env.WATCHED_HERE){
+    run();
     return;
   }
   let child, 
@@ -30,7 +31,8 @@ function watchHere({dir, name}){
       ignoreDirectoryPattern: /node_modules/
     }, function(f){
       if(typeof f !== 'object'){
-        console.info('[watcher]file changed');
+        // console.info('[Watch-Here]: file changed:', `'./${path.relative(dir, f)}'`);
+        console.info('[Watch-Here]: file changed.');
         if(f === process.mainModule.filename){
           return; // 此文件
         }

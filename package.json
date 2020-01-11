@@ -1,0 +1,26 @@
+{
+  "name": "watch-here",
+  "version": "1.0.0",
+  "description": "watch file change and reload process.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": ["index.js"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hezedu/watch-here.git"
+  },
+  "author": "hezedu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hezedu/watch-here/issues"
+  },
+  "homepage": "https://github.com/hezedu/watch-here#readme",
+  "dependencies": {
+    "watch": "^1.0.2"
+  }
+}
