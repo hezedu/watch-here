@@ -16,8 +16,8 @@ function _colorLog(style, str) {
   console.info('\u001b[' + _COLOR_MAP[style] + 'm' + str + '\u001b[39m');
 }
 
-function watchHere({dir, name, run}){
-  if(process.env.WATCHED_HERE_NAME === name){
+function watchHere({dir, id, run}){
+  if(process.env.WATCHED_HERE_ID === id){
     run();
     return;
   } else {
@@ -86,12 +86,12 @@ function watchHere({dir, name, run}){
     console.log('handleChildCrash')
     if(fileIsChange){
       isWaitFileChange = false;
-      _colorLog('cyan', `[${name}]: Restarting due to changes...`);
+      _colorLog('cyan', `[${id}]: Restarting due to changes...`);
       loop();
       fileIsChange = false;
     } else {
       if(!isWaitFileChange){
-        _colorLog('red', `[${name}]: Process is crash! wait for File Change to restart...`);
+        _colorLog('red', `[${id}]: Process is crash! wait for File Change to restart...`);
         isWaitFileChange = true;
       }
       // setTimeout(handleChildCrash, 1000);
@@ -103,7 +103,7 @@ function watchHere({dir, name, run}){
       cwd: __dirname,
       env: {
         ...process.env,
-        WATCHED_HERE_NAME: name
+        WATCHED_HERE_ID: id
       },
       stdio: 'inherit'
     });
@@ -113,7 +113,7 @@ function watchHere({dir, name, run}){
       if(code !== 0){
         handleChildCrash();
       }else{
-        _colorLog('cyan', `[${name}]: Child exit success! Watcher exit. \t ${new Date()}`);
+        _colorLog('cyan', `[${id}]: Child exit success! Watcher exit. \t ${new Date()}`);
         process.exit(); // 正常退出
       }
     });
