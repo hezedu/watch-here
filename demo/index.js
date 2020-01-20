@@ -1,8 +1,9 @@
 const watchHere = require('../index');
 const createServer = require('./server');
+
 watchHere({
+  id: 'test',
   dir: __dirname,
-  name: 'test',
   run(){
     createServer(9004);
   }

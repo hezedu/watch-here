@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "watch file change and reload process.",
   "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
+  "keywords": ["watch", "linux"],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

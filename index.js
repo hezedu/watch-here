@@ -87,10 +87,11 @@ function watchHere({dir, id, run}){
     }, function(f){
       if(typeof f !== 'object'){
         // console.info('[Watch-Here]: file changed:', `'./${path.relative(dir, f)}'`);
-        console.info('[Watch-Here]: file changed:', `'${f}'`);
         if(f === process.mainModule.filename){
+          _colorLog('yellow', '[Watch-Here]: MainModule is ignored.');
           return; // 此文件
         }
+        console.info('[Watch-Here]: file changed:', `'${f}'`);
         fileIsChange = true;
         child.kill();
       }
