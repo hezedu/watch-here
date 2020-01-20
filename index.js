@@ -17,7 +17,7 @@ function _colorLog(style, str) {
 }
 
 function watchHere({dir, id, run}){
-  if(process.env.WATCHED_HERE_ID === id){
+  if(process.argv[2] === '--id=' + id){
     run();
     return;
   } else {
@@ -27,9 +27,9 @@ function watchHere({dir, id, run}){
       let result = execSync(psCmdPre + "'" + process.argv.join(' ') + "'");
       result = result.toString();
       result = result.trim();
-      console.log('\n');
-      console.log(result);
-      console.log('\n');
+      // console.log('\n');
+      // console.log(result);
+      // console.log('\n');
       result = result.split(/\n|\r\n/);
       let line;
       let pidArr = [];
@@ -50,11 +50,25 @@ function watchHere({dir, id, run}){
       return pidArr;
     }
 
-    let watchedPids = _getWatchedProcess();
-    watchedPids.forEach(pid => {
-      _colorLog('green', '[watch-here]: Rewatch. kill process ' + pid);
-      execSync('kill ' + pid);
-    })
+    function _killAll(){
+      let watchedPids = _getWatchedProcess();
+      watchedPids.forEach(pid => {
+        _colorLog('green', '[watch-here]: Rewatch. kill process ' + pid);
+        execSync('kill ' + pid);
+      })
+    }
+    _killAll();
+
+    // ['SIGINT', 'SIGTERM', 'SIGHUP'].forEach(k => {
+    //   process.on(k, () => {
+    //     process.exit();
+    //   })
+    // })
+    // process.on('exit', () => {
+    //   console.log('on exit');
+    //   child.kill();
+    //   _killAll();
+    // })
 
     // console.log(result)
     // result = result.split(/\s+/);
@@ -83,7 +97,6 @@ function watchHere({dir, id, run}){
     });
   }
   function handleChildCrash(){
-    console.log('handleChildCrash')
     if(fileIsChange){
       isWaitFileChange = false;
       _colorLog('cyan', `[${id}]: Restarting due to changes...`);
@@ -94,16 +107,17 @@ function watchHere({dir, id, run}){
         _colorLog('red', `[${id}]: Process is crash! wait for File Change to restart...`);
         isWaitFileChange = true;
       }
-      // setTimeout(handleChildCrash, 1000);
+      setTimeout(handleChildCrash, 1500);
     }
   }
 
   function loop(){
-    child = spawn(process.argv[0], process.argv.slice(1), {
+    const arr = process.argv.slice(1);
+    arr.push('--id=' + id);
+    child = spawn(process.argv[0], arr, {
       cwd: __dirname,
       env: {
-        ...process.env,
-        WATCHED_HERE_ID: id
+        ...process.env
       },
       stdio: 'inherit'
     });
