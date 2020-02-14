@@ -80,12 +80,7 @@ function watchHere({dir, id, run}){
   isWaitFileChange = false;
 
   function _watch(dir){
-    watch.watchTree(dir, {
-      interval: 1, 
-      ignoreDotFiles: true,
-      ignoreDirectoryPattern: /node_modules/
-    }, function(f){
-      if(typeof f !== 'object'){
+    watchTree(dir, function(f){
         // console.info('[Watch-Here]: file changed:', `'./${path.relative(dir, f)}'`);
         if(f === process.mainModule.filename){
           _colorLog('yellow', '[Watch-Here]: MainModule is ignored.');
@@ -94,7 +89,6 @@ function watchHere({dir, id, run}){
         console.info('[Watch-Here]: file changed:', `'${f}'`);
         fileIsChange = true;
         child.kill();
-      }
     });
   }
   function handleChildCrash(){
@@ -139,4 +133,18 @@ function watchHere({dir, id, run}){
   loop();
 }
 
-module.exports = watchHere;
+function watchTree(dir, onChange){
+  watch.watchTree(dir, {
+    interval: 1, 
+    ignoreDotFiles: true,
+    ignoreDirectoryPattern: /node_modules/
+  }, function(f){
+    if(typeof f !== 'object'){
+      onChange(f);
+    }
+  });
+}
+module.exports = {
+  watchHere,
+  watchTree
+};
